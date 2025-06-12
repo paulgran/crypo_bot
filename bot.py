@@ -12,7 +12,7 @@ import uvicorn
 load_dotenv()
 API_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 CHAT_ID = int(os.getenv('TELEGRAM_CHAT_ID', '0'))
-PRICE_DIFF_THRESHOLD = float(os.getenv('PRICE_DIFF_THRESHOLD', 0.005))
+PRICE_DIFF_THRESHOLD = float(os.getenv('PRICE_DIFF_THRESHOLD', 0.001))
 
 PAIRS = [
     'TRXUSDT', 'USDCTRX', 'WETHTRX', 'BTTTRX', 'JSTTRX', 'SUNTRX',
