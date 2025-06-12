@@ -89,7 +89,7 @@ async def check_arbitrage():
                             f"{ex2}: {p2:.5f}\n"
                             f"Diff: {diff*100:.2f}%"
                         )
-                        await bot.send_message(CHAT_ID, message)
+                        await bot.send_message(CHAT_ID, "✅ Бот работает. Это тестовое сообщение.")
                         logging.info(message)
     except Exception as e:
         logging.error(f"Error checking arbitrage: {e}")
