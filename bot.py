@@ -15,7 +15,7 @@ from threading import Thread
 load_dotenv()
 API_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = int(os.getenv("TELEGRAM_CHAT_ID", "0"))
-PRICE_DIFF_THRESHOLD = float(os.getenv("PRICE_DIFF_THRESHOLD", 0.005))
+PRICE_DIFF_THRESHOLD = float(os.getenv("PRICE_DIFF_THRESHOLD", 0.001))
 
 PAIRS = [
     "TRXUSDT", "TRXUSDC", "TRXWETH", "TRXBTT", "TRXJST",
@@ -36,10 +36,7 @@ bot = Bot(token=API_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTM
 dp = Dispatcher()
 scheduler = AsyncIOScheduler()
 app = FastAPI()
-log_messages = []
 is_paused = False
-
-logging.basicConfig(level=logging.INFO)
 
 @app.get("/")
 def root():
@@ -64,41 +61,31 @@ async def fetch_price(exchange, pair):
                     return float(data["data"][0]["last"])
                 elif exchange == "Bybit":
                     return float(data["result"][0]["last_price"])
-        except Exception:
+        except:
             return None
 
 async def check_arbitrage():
     if is_paused:
         return
     for pair in PAIRS:
-        debug_message = f"🔍 <b>Отладка {pair}:</b>\n"
         prices = {}
         for exchange in EXCHANGES:
-            try:
-                price = await fetch_price(exchange, pair)
-                if price:
-                    prices[exchange] = price
-                    debug_message += f"{exchange}: {price:.5f}\n"
-                else:
-                    debug_message += f"{exchange}: ❌\n"
-            except Exception as e:
-                debug_message += f"{exchange}: ❌ ({str(e)})\n"
-        log_messages.append(debug_message)
+            price = await fetch_price(exchange, pair)
+            if price:
+                prices[exchange] = price
         if len(prices) >= 2:
             exs = list(prices.keys())
             p1, p2 = prices[exs[0]], prices[exs[1]]
             diff = abs(p1 - p2) / min(p1, p2)
-            debug_message += f"\n<b>Diff:</b> {diff*100:.2f}%\n"
             if diff >= PRICE_DIFF_THRESHOLD:
-                debug_message += "⚠️ <b>Разница превышает порог!</b>\n"
-        if len(prices) >= 2:
-    exs = list(prices.keys())
-    p1, p2 = prices[exs[0]], prices[exs[1]]
-    diff = abs(p1 - p2) / min(p1, p2)
-    if diff >= PRICE_DIFF_THRESHOLD:
-        debug_message += f"\n<b>Diff:</b> {diff*100:.2f}%"
-        debug_message += "\n⚠️ <b>Разница превышает порог!</b>"
-        await bot.send_message(CHAT_ID, debug_message)
+                msg = f"📈 <b>Выгодная пара {pair[:3]}/{pair[3:]}:</b>
+"
+                for ex in prices:
+                    msg += f"{ex}: {prices[ex]:.5f}
+"
+                msg += f"
+<b>Diff:</b> {diff*100:.2f}% ⚠️"
+                await bot.send_message(CHAT_ID, msg)
 
 @dp.message(F.text == "/start")
 async def cmd_start(msg: Message):
@@ -110,12 +97,10 @@ async def cmd_help(msg: Message):
     if msg.chat.id == CHAT_ID:
         await msg.answer("""🛠 Команды:
 /ping
-/status
 /pause
 /resume
 /threshold 0.002
-/list
-/log""")
+/help""")
 
 @dp.message(F.text == "/ping")
 async def cmd_ping(msg: Message):
@@ -136,10 +121,21 @@ async def cmd_resume(msg: Message):
         is_paused = False
         await msg.answer("▶️ Возобновлено")
 
+@dp.message(F.text.startswith("/threshold"))
+async def cmd_threshold(msg: Message):
+    global PRICE_DIFF_THRESHOLD
+    if msg.chat.id == CHAT_ID:
+        try:
+            val = float(msg.text.split()[1])
+            PRICE_DIFF_THRESHOLD = val
+            await msg.answer(f"🔧 Порог обновлён: {val}")
+        except:
+            await msg.answer("⚠️ Формат: /threshold 0.005")
+
 async def main():
     scheduler.add_job(check_arbitrage, "interval", seconds=30)
     scheduler.start()
-    await bot.send_message(CHAT_ID, "✅ Railway бот полностью работает.")
+    await bot.send_message(CHAT_ID, "✅ Railway бот запущен.")
     await dp.start_polling(bot)
 
 def run_fastapi():
