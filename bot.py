@@ -16,7 +16,7 @@ from threading import Thread
 load_dotenv()
 API_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = int(os.getenv("TELEGRAM_CHAT_ID", "0"))
-PRICE_DIFF_THRESHOLD = float(os.getenv("PRICE_DIFF_THRESHOLD", 0.001))
+PRICE_DIFF_THRESHOLD = float(os.getenv("PRICE_DIFF_THRESHOLD", 0.005))
 
 PAIRS = [
     "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "DOGEUSDT", "TRXUSDT",
@@ -106,7 +106,7 @@ async def cmd_start(msg: Message):
 
 @dp.message(F.text == "/help")
 async def cmd_help(msg: Message):
-    await msg.answer("🧠 Команды:\n/ping\n/pause\n/resume\n/threshold 0.001")
+    await msg.answer("🧠 Команды:\n/ping\n/pause\n/resume\n/threshold 0.005")
 
 @dp.message(F.text == "/ping")
 async def cmd_ping(msg: Message):
@@ -132,7 +132,7 @@ async def cmd_threshold(msg: Message):
         PRICE_DIFF_THRESHOLD = val
         await msg.answer(f"✅ Новый порог: {val}")
     except:
-        await msg.answer("⚠️ Формат: /threshold 0.001")
+        await msg.answer("⚠️ Формат: /threshold 0.005")
 
 async def main():
     scheduler.add_job(check_arbitrage, "interval", seconds=30)
