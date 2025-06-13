@@ -1,2 +1,0 @@
-2025-06-12 23:27:52,281 ERROR:Task was destroyed but it is pending!
-task: <Task pending name='Task-1' coro=<main() running at /Users/paulgran/Desktop/Bot_crypto_bot/bot.py:98>>
