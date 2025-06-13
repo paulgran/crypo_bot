@@ -27,10 +27,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s:%(mess
 
 async def fetch_price(exchange, pair):
     url = EXCHANGES[exchange](pair)
+    headers = {'User-Agent': 'Mozilla/5.0'}
     async with aiohttp.ClientSession() as session:
-        async with session.get(url) as resp:
-            data = await resp.json()
-            try:
+        try:
+            async with session.get(url, headers=headers) as resp:
+                if resp.status == 403:
+                    return None
+                data = await resp.json()
                 if exchange == 'Binance':
                     return float(data['price'])
                 elif exchange == 'KuCoin':
@@ -41,8 +44,8 @@ async def fetch_price(exchange, pair):
                     return float(data['data'][0]['last'])
                 elif exchange == 'Bybit':
                     return float(data['result'][0]['last_price'])
-            except:
-                return None
+        except Exception as e:
+            return None
 
 async def check_arbitrage():
     try:
@@ -77,7 +80,7 @@ async def check_arbitrage():
 async def main():
     scheduler.add_job(check_arbitrage, 'interval', seconds=30)
     scheduler.start()
-    await bot.send_message(CHAT_ID, "✅ Бот Railway запущен и проверяет цены каждые 30 секунд.")
+    await bot.send_message(CHAT_ID, "✅ Финальная версия Railway-бота запущена.")
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
