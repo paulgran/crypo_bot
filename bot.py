@@ -39,6 +39,8 @@ app = FastAPI()
 log_messages = []
 is_paused = False
 
+logging.basicConfig(level=logging.INFO)
+
 @app.get("/")
 def root():
     return {"status": "Bot is running"}
@@ -68,55 +70,98 @@ async def fetch_price(exchange, pair):
 async def check_arbitrage():
     if is_paused:
         return
-    try:
-        for pair in PAIRS:
-            debug_message = f"🔍 <b>Отладка {pair[:3]}/{pair[3:]}:</b>\n"
-            prices = {}
-            for exchange in EXCHANGES:
-                try:
-                    price = await fetch_price(exchange, pair)
-                    if price:
-                        prices[exchange] = price
-                        debug_message += f"{exchange}: {price:.5f}\n"
-                    else:
-                        debug_message += f"{exchange}: ❌\n"
-                except Exception as e:
-                    debug_message += f"{exchange}: ❌ ({str(e)})\n"
-            log_messages.append(debug_message)
-            if len(prices) >= 2:
-                exs = list(prices.keys())
-                p1, p2 = prices[exs[0]], prices[exs[1]]
-                diff = abs(p1 - p2) / min(p1, p2)
-                debug_message += f"\n<b>Diff:</b> {diff*100:.2f}%\n"
-                if diff >= PRICE_DIFF_THRESHOLD:
-                    debug_message += "⚠️ <b>Разница превышает порог!</b>\n"
-            await bot.send_message(CHAT_ID, debug_message)
-    except Exception as e:
-        await bot.send_message(CHAT_ID, f"❌ Ошибка: {e}")
+    for pair in PAIRS:
+        debug_message = f"🔍 <b>Отладка {pair[:3]}/{pair[3:]}:</b>\n"
+        prices = {}
+        for exchange in EXCHANGES:
+            try:
+                price = await fetch_price(exchange, pair)
+                if price:
+                    prices[exchange] = price
+                    debug_message += f"{exchange}: {price:.5f}\n"
+                else:
+                    debug_message += f"{exchange}: ❌\n"
+            except Exception as e:
+                debug_message += f"{exchange}: ❌ ({str(e)})\n"
+        log_messages.append(debug_message)
+        if len(prices) >= 2:
+            exs = list(prices.keys())
+            p1, p2 = prices[exs[0]], prices[exs[1]]
+            diff = abs(p1 - p2) / min(p1, p2)
+            debug_message += f"\n<b>Diff:</b> {diff*100:.2f}%\n"
+            if diff >= PRICE_DIFF_THRESHOLD:
+                debug_message += "⚠️ <b>Разница превышает порог!</b>\n"
+        await bot.send_message(CHAT_ID, debug_message)
+
+@dp.message(F.text == "/start")
+async def cmd_start(msg: Message):
+    if msg.chat.id == CHAT_ID:
+        await msg.answer("🤖 Бот готов. Введите /help для команд.")
+
+@dp.message(F.text == "/help")
+async def cmd_help(msg: Message):
+    if msg.chat.id == CHAT_ID:
+        await msg.answer("🛠 Команды:
+/ping
+/status
+/pause
+/resume
+/threshold 0.002
+/list
+/log")
 
 @dp.message(F.text == "/ping")
 async def cmd_ping(msg: Message):
     if msg.chat.id == CHAT_ID:
         await msg.answer("🏓 Я на связи!")
 
+@dp.message(F.text == "/status")
+async def cmd_status(msg: Message):
+    if msg.chat.id == CHAT_ID:
+        await msg.answer(f"✅ Статус:
+Порог: {PRICE_DIFF_THRESHOLD}
+Проверка: {'⏸' if is_paused else '▶️'}")
+
 @dp.message(F.text == "/pause")
 async def cmd_pause(msg: Message):
     global is_paused
     if msg.chat.id == CHAT_ID:
         is_paused = True
-        await msg.answer("⏸ Остановлено")
+        await msg.answer("⏸ Проверка остановлена.")
 
 @dp.message(F.text == "/resume")
 async def cmd_resume(msg: Message):
     global is_paused
     if msg.chat.id == CHAT_ID:
         is_paused = False
-        await msg.answer("▶️ Возобновлено")
+        await msg.answer("▶️ Проверка возобновлена.")
+
+@dp.message(F.text.startswith("/threshold "))
+async def cmd_threshold(msg: Message):
+    global PRICE_DIFF_THRESHOLD
+    if msg.chat.id == CHAT_ID:
+        try:
+            val = float(msg.text.split()[1])
+            PRICE_DIFF_THRESHOLD = val
+            await msg.answer(f"📉 Новый порог: {val}")
+        except:
+            await msg.answer("⚠️ Неверный формат. Пример: /threshold 0.002")
+
+@dp.message(F.text == "/list")
+async def cmd_list(msg: Message):
+    if msg.chat.id == CHAT_ID:
+        await msg.answer("📄 Пары:
+" + "\n".join(PAIRS))
+
+@dp.message(F.text == "/log")
+async def cmd_log(msg: Message):
+    if msg.chat.id == CHAT_ID:
+        await msg.answer("\n---\n".join(log_messages[-5:]))
 
 async def main():
     scheduler.add_job(check_arbitrage, 'interval', seconds=30)
     scheduler.start()
-    await bot.send_message(CHAT_ID, "✅ Railway бот стабильно работает!")
+    await bot.send_message(CHAT_ID, "✅ Railway бот полностью активен.")
 
 if __name__ == '__main__':
     loop = asyncio.new_event_loop()
