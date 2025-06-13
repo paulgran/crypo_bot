@@ -71,7 +71,7 @@ async def check_arbitrage():
     if is_paused:
         return
     for pair in PAIRS:
-        debug_message = f"🔍 <b>Отладка {pair[:3]}/{pair[3:]}:</b>\n"
+        debug_message = f"🔍 <b>Отладка {pair}:</b>\n"
         prices = {}
         for exchange in EXCHANGES:
             try:
