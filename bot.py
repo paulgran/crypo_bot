@@ -31,7 +31,7 @@ EXCHANGES = {
     "KuCoin": lambda pair: f"https://api.kucoin.com/api/v1/market/orderbook/level1?symbol={pair[:3]}-{pair[3:]}",
     "MEXC": lambda pair: f"https://www.mexc.com/open/api/v2/market/ticker?symbol={pair[:3]}_{pair[3:]}",
     "OKX": lambda pair: f"https://www.okx.com/api/v5/market/ticker?instId={pair[:3]}-{pair[3:]}",
-    "Bybit": lambda pair: f"https://api.bybit.com/v2/public/tickers?symbol={pair}",
+    "Bybit": lambda pair: f"https://api.bybit.com/v5/market/tickers?category=spot&symbol={pair}",
     "Gate.io": lambda pair: f"https://api.gate.io/api2/1/ticker/{pair.lower()}",
     "Huobi": lambda pair: f"https://api.huobi.pro/market/detail/merged?symbol={pair.lower()}",
     "Bitfinex": lambda pair: f"https://api-pub.bitfinex.com/v2/ticker/t{pair}"
