@@ -16,7 +16,7 @@ from threading import Thread
 load_dotenv()
 API_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = int(os.getenv("TELEGRAM_CHAT_ID", "0"))
-PRICE_DIFF_THRESHOLD = float(os.getenv("PRICE_DIFF_THRESHOLD", 0.001))
+PRICE_DIFF_THRESHOLD = float(os.getenv("PRICE_DIFF_THRESHOLD", 0.005))
 
 PAIRS = [
     "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "DOGEUSDT", "TRXUSDT",
@@ -92,8 +92,11 @@ async def check_arbitrage():
                     p1, p2 = prices[a], prices[b]
                     diff = abs(p1 - p2) / min(p1, p2)
                     if diff >= PRICE_DIFF_THRESHOLD:
-                       percent = diff * 100
-                       msg += f"Diff: {percent:.2f}% ⚠️"
+                        percent = diff * 100
+                        msg = f"📊 <b>{pair[:3]}/{pair[3:]}</b>\n"
+                        msg += f"{a}: {p1:.4f}\n"
+                        msg += f"{b}: {p2:.4f}\n"
+                        msg += f"\nDiff: {percent:.2f}% ⚠️"
                         await bot.send_message(CHAT_ID, msg)
 
 @dp.message(F.text == "/start")
@@ -103,11 +106,7 @@ async def cmd_start(msg: Message):
 
 @dp.message(F.text == "/help")
 async def cmd_help(msg: Message):
-    await msg.answer("🧠 Команды:
-/ping
-/pause
-/resume
-/threshold 0.005")
+    await msg.answer("🧠 Команды:\n/ping\n/pause\n/resume\n/threshold 0.005")
 
 @dp.message(F.text == "/ping")
 async def cmd_ping(msg: Message):
