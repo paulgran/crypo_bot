@@ -5,6 +5,8 @@ import os
 from aiogram import Bot, Dispatcher
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
+from fastapi import FastAPI
+import uvicorn
 
 load_dotenv()
 API_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
@@ -30,6 +32,12 @@ bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 scheduler = AsyncIOScheduler()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s')
+
+app = FastAPI()
+
+@app.get("/")
+def root():
+    return {"status": "Bot is running"}
 
 async def fetch_price(exchange, pair):
     url = EXCHANGES[exchange](pair)
@@ -85,8 +93,11 @@ async def check_arbitrage():
 async def main():
     scheduler.add_job(check_arbitrage, 'interval', seconds=30)
     scheduler.start()
-    await bot.send_message(CHAT_ID, "✅ Railway бот запущен. Проверяю 20 пар в корректном направлении.")
+    await bot.send_message(CHAT_ID, "✅ Railway бот с FastAPI-заглушкой запущен.")
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.create_task(main())
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
