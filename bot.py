@@ -2,7 +2,6 @@ import logging
 import asyncio
 import aiohttp
 import os
-import threading
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
@@ -11,6 +10,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 from fastapi import FastAPI
 import uvicorn
+from threading import Thread
 
 load_dotenv()
 API_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -130,15 +130,14 @@ async def cmd_resume(msg: Message):
         await msg.answer("▶️ Возобновлено")
 
 async def main():
-    scheduler.add_job(check_arbitrage, 'interval', seconds=30)
+    scheduler.add_job(check_arbitrage, "interval", seconds=30)
     scheduler.start()
     await bot.send_message(CHAT_ID, "✅ Railway бот полностью работает.")
     await dp.start_polling(bot)
 
-if __name__ == '__main__':
-    loop = asyncio.new_event_loop()
-    def run_main():
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(main())
-    threading.Thread(target=run_main).start()
+def run_fastapi():
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
+
+if __name__ == "__main__":
+    Thread(target=run_fastapi).start()
+    asyncio.run(main())
