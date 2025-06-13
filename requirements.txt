@@ -1,6 +1,0 @@
-aiohttp
-aiogram
-apscheduler
-python-dotenv
-fastapi
-uvicorn
