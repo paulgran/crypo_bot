@@ -133,6 +133,7 @@ async def main():
     scheduler.add_job(check_arbitrage, 'interval', seconds=30)
     scheduler.start()
     await bot.send_message(CHAT_ID, "✅ Railway бот полностью работает.")
+    await dp.start_polling(bot)
 
 if __name__ == '__main__':
     loop = asyncio.new_event_loop()
