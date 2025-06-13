@@ -106,7 +106,7 @@ async def cmd_start(msg: Message):
 
 @dp.message(F.text == "/help")
 async def cmd_help(msg: Message):
-    await msg.answer("🧠 Команды:\n/ping\n/pause\n/resume\n/threshold 0.005")
+    await msg.answer("🧠 Команды:\n/ping\n/pause\n/resume\n/threshold 0.001")
 
 @dp.message(F.text == "/ping")
 async def cmd_ping(msg: Message):
@@ -132,7 +132,7 @@ async def cmd_threshold(msg: Message):
         PRICE_DIFF_THRESHOLD = val
         await msg.answer(f"✅ Новый порог: {val}")
     except:
-        await msg.answer("⚠️ Формат: /threshold 0.005")
+        await msg.answer("⚠️ Формат: /threshold 0.001")
 
 async def main():
     scheduler.add_job(check_arbitrage, "interval", seconds=30)
