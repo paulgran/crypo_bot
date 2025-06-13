@@ -78,13 +78,10 @@ async def check_arbitrage():
             p1, p2 = prices[exs[0]], prices[exs[1]]
             diff = abs(p1 - p2) / min(p1, p2)
             if diff >= PRICE_DIFF_THRESHOLD:
-            msg = f"📈 <b>Выгодная пара {pair[:3]}/{pair[3:]}:</b>\\n"
-"
+                msg = f"📈 <b>Выгодная пара {pair[:3]}/{pair[3:]}:</b>\n"
                 for ex in prices:
-                    msg += f"{ex}: {prices[ex]:.5f}
-"
-                msg += f"
-<b>Diff:</b> {diff*100:.2f}% ⚠️"
+                    msg += f"{ex}: {prices[ex]:.5f}\n"
+                msg += f"\n<b>Diff:</b> {diff*100:.2f}% ⚠️"
                 await bot.send_message(CHAT_ID, msg)
 
 @dp.message(F.text == "/start")
