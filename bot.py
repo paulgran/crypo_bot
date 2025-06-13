@@ -91,6 +91,13 @@ async def check_arbitrage():
             debug_message += f"\n<b>Diff:</b> {diff*100:.2f}%\n"
             if diff >= PRICE_DIFF_THRESHOLD:
                 debug_message += "⚠️ <b>Разница превышает порог!</b>\n"
+        if len(prices) >= 2:
+    exs = list(prices.keys())
+    p1, p2 = prices[exs[0]], prices[exs[1]]
+    diff = abs(p1 - p2) / min(p1, p2)
+    if diff >= PRICE_DIFF_THRESHOLD:
+        debug_message += f"\n<b>Diff:</b> {diff*100:.2f}%"
+        debug_message += "\n⚠️ <b>Разница превышает порог!</b>"
         await bot.send_message(CHAT_ID, debug_message)
 
 @dp.message(F.text == "/start")
