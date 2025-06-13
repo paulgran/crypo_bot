@@ -92,7 +92,7 @@ async def check_arbitrage():
                     p1, p2 = prices[a], prices[b]
                     diff = abs(p1 - p2) / min(p1, p2)
                     if diff >= PRICE_DIFF_THRESHOLD:
-                        msg = f"📊 <b>{pair[:3]}/{pair[3:]}</b>
+                       msg = f"📊 <b>{pair[:3]}/{pair[3:]}</b>\n"
 {a}: {p1:.4f}
 {b}: {p2:.4f}
 
